@@ -1,0 +1,42 @@
+name: voting-app
+
+services:
+  vote:
+    image: ${DOCKERHUB_USERNAME}/voting-app-vote:v1
+    ports:
+      - "8082:80"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  worker:
+    image: ${DOCKERHUB_USERNAME}/voting-app-worker:v1
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  result:
+    image: ${DOCKERHUB_USERNAME}/voting-app-result:v1
+    ports:
+      - "8083:4000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
